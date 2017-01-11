@@ -100,6 +100,8 @@ func LoadSingleCSV(filename string, pgTable *SQLImport) {
 	var bar *pb.ProgressBar
 	// load file
 	csvfile, err := os.Open(filename)
+	defer csvfile.Close()
+
 	bar = NewProgressBar(csvfile)
 
 	if err != nil {
@@ -110,7 +112,6 @@ func LoadSingleCSV(filename string, pgTable *SQLImport) {
 	msg := fmt.Sprintf("Reading %s", filename)
 	fmt.Println(msg)
 	csvError.Println(msg)
-	defer csvfile.Close()
 
 	reader := csv.NewReader(io.TeeReader(csvfile, bar))
 	bar.Start()
@@ -145,6 +146,17 @@ func importCSV(pgTable *SQLImport, reader *csv.Reader) error {
 			continue
 		}
 
+		//skip alles niet in zuid
+		//if record != nil {
+		//	if len(record) > 5 {
+		//		if record[5] != "" {
+		//			if string(record[5][0]) != "K" {
+		//				continue
+		//			}
+		//		}
+		//	}
+		//}
+
 		rowCount++
 
 		cols, err := NormalizeRow(&record)
@@ -169,6 +181,7 @@ func importCSV(pgTable *SQLImport, reader *csv.Reader) error {
 			} else {
 				err = fmt.Errorf("%s: %s", err, line)
 				printRecord(&record)
+				printCols(cols)
 				panic(err)
 			}
 		}
